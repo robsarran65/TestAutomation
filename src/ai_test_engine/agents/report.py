@@ -29,6 +29,53 @@ from ai_test_engine.agents.agent_base import Agent, AgentType, TaskMessage, Task
 from ai_test_engine.config.settings import REPORTS_DIR
 
 
+def normalize_test_results(test_results: Dict[str, Any]) -> Dict[str, Any]:
+    """Coerce either executor result shape into the one the renderers read.
+
+    The Test Executor returns two different shapes. A single run
+    (``run_test_cases``) uses::
+
+        total_steps / passed_steps / failed_steps / success_rate / steps
+
+    while a data-driven run (``run_data_driven_test``) uses::
+
+        total_steps_executed / total_passed / total_failed /
+        overall_success_rate / iterations[].steps
+
+    Every renderer below reads the first set only, so a data-driven result
+    passed straight through rendered a report claiming 0 steps and 0 passed
+    for a run that really executed dozens. Normalising here rather than at each
+    call site means any caller -- the demo workflow, scripts, the UI -- gets a
+    correct report without knowing which action produced the results.
+
+    Single-run results and unrecognised shapes are returned unchanged.
+    """
+    if test_results.get("test_type") != "data_driven":
+        return test_results
+
+    steps: List[Dict[str, Any]] = []
+    for iteration in test_results.get("iterations", []):
+        row_num = iteration.get("data_row_num")
+        for step in iteration.get("steps", []):
+            # Prefix the row number so a 5-step workbook run over 3 rows reads
+            # as 15 distinct rows rather than three identical-looking blocks.
+            steps.append({**step, "description": f"[row {row_num}] {step.get('description', '')}"})
+
+    return {
+        **test_results,
+        "total_steps": test_results.get("total_steps_executed", 0),
+        "passed_steps": test_results.get("total_passed", 0),
+        "failed_steps": test_results.get("total_failed", 0),
+        "success_rate": test_results.get("overall_success_rate", 0),
+        "steps": steps,
+        # Iterations each carry their own duration; the renderers want one
+        # number for the whole run.
+        "duration_sec": sum(
+            it.get("duration_sec", 0) for it in test_results.get("iterations", [])
+        ),
+    }
+
+
 class ReportAgent(Agent):
     """
     Generates comprehensive test reports in multiple formats.
@@ -105,7 +152,9 @@ class ReportAgent(Agent):
             {"filepath": "...", "url": "...", "summary": {...}}
         """
         print(f"📊 Generating HTML report: {filename}")
-        
+
+        test_results = normalize_test_results(test_results)
+
         # Extract test metrics
         total_steps = test_results.get("total_steps", 0)
         passed = test_results.get("passed_steps", 0)
@@ -317,7 +366,9 @@ class ReportAgent(Agent):
             {"filepath": "...", "summary": {...}}
         """
         print(f"📄 Generating PDF report: {filename}")
-        
+
+        test_results = normalize_test_results(test_results)
+
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", "B", 16)
@@ -360,6 +411,8 @@ class ReportAgent(Agent):
         Returns:
             Summary dict with key metrics
         """
+        test_results = normalize_test_results(test_results)
+
         total = test_results.get("total_steps", 0)
         passed = test_results.get("passed_steps", 0)
         failed = test_results.get("failed_steps", 0)

@@ -6,7 +6,7 @@ import pytest
 
 from ai_test_engine.agents.agent_base import AgentType, TaskMessage, TaskStatus
 from ai_test_engine.agents.ai_generation import AIGenerationAgent
-from ai_test_engine.agents.report import ReportAgent
+from ai_test_engine.agents.report import ReportAgent, normalize_test_results
 from ai_test_engine.agents.specialized import (
     DataValidatorAgent, LocatorRepairAgent, PerformanceAnalyzerAgent,
 )
@@ -140,3 +140,64 @@ def test_report_agent_summary_matches_input():
     assert summary["metrics"]["passed"] == 1
     assert summary["metrics"]["failed"] == 1
     assert "TEST EXECUTION SUMMARY" in summary["summary_text"]
+
+
+# ---------------------------------------------------------------------------
+# Data-driven results use a different key set than a single run. The renderers
+# read the single-run keys, so before normalize_test_results() a data-driven
+# report claimed 0 steps / 0 passed for a run that really executed several.
+# ---------------------------------------------------------------------------
+DATA_DRIVEN_RESULTS = {
+    "test_type": "data_driven",
+    "total_data_rows": 2,
+    "total_steps_per_row": 2,
+    "total_steps_executed": 4,
+    "total_passed": 3,
+    "total_failed": 1,
+    "overall_success_rate": 75.0,
+    "environment": "TEST",
+    "iterations": [
+        {"data_row_num": 1, "duration_sec": 1.5, "steps": STEPS},
+        {"data_row_num": 2, "duration_sec": 2.5, "steps": STEPS},
+    ],
+}
+
+
+def test_normalize_maps_data_driven_keys_to_renderer_keys():
+    normalized = normalize_test_results(DATA_DRIVEN_RESULTS)
+
+    assert normalized["total_steps"] == 4
+    assert normalized["passed_steps"] == 3
+    assert normalized["failed_steps"] == 1
+    assert normalized["success_rate"] == 75.0
+    assert normalized["duration_sec"] == 4.0  # summed across iterations
+
+
+def test_normalize_flattens_iterations_and_labels_each_row():
+    steps = normalize_test_results(DATA_DRIVEN_RESULTS)["steps"]
+
+    assert len(steps) == 4  # 2 steps x 2 rows, not 2
+    assert steps[0]["description"].startswith("[row 1]")
+    assert steps[2]["description"].startswith("[row 2]")
+
+
+def test_normalize_leaves_single_run_results_untouched():
+    assert normalize_test_results(RESULTS) == RESULTS
+
+
+def test_report_agent_renders_real_numbers_for_data_driven_runs(tmp_path):
+    """The regression guard: a data-driven report must not read 0 steps."""
+    agent = ReportAgent(output_dir=str(tmp_path))
+    out = agent.generate_html_report(DATA_DRIVEN_RESULTS, filename="dd")
+
+    assert out["summary"] == {"passed": 3, "failed": 1, "total": 4, "success_rate": 75.0}
+    assert out["test_count"] == 4
+
+    text = (tmp_path / "dd_report.html").read_text(encoding="utf-8")
+    assert "[row 1]" in text and "[row 2]" in text
+
+
+def test_report_agent_summary_handles_data_driven_shape():
+    metrics = ReportAgent().generate_summary(DATA_DRIVEN_RESULTS)["metrics"]
+
+    assert metrics == {"total_steps": 4, "passed": 3, "failed": 1, "success_rate": 75.0}

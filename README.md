@@ -88,11 +88,13 @@ Standard Python src-layout — the importable package lives under `src/`.
   - `core/` — keyword engine, test runner, browser factory, AI helpers
   - `config/settings.py` — all paths and environment-backed settings
   - `prompts.py` — LLM prompt templates
-- `tests/` — pytest suite (104 tests, no browser or network required)
+- `tests/` — pytest suite (112 tests, no browser or network required)
 - `data/test_data/` — sample `.xlsx` test workbooks
 - `outputs/` — generated reports, logs, screenshots (git-ignored)
 - `docs/` — architecture, deployment, quickstart
 - `scripts/` — standalone utilities
+  - `run_sample_test.py` — execute a sample workbook headlessly (real run)
+  - `run_tests.py` — report layout preview (mocked results)
 
 Full detail: [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md).
 
@@ -131,6 +133,9 @@ Runs fully offline with no `.env` — `AI_PROVIDER` defaults to `stub`.
 pytest
 ```
 
+112 tests, ~5 seconds, fully offline — no browser or network needed. See
+[Running the test suite](#running-the-test-suite) for more.
+
 ### 5. Run the dashboard
 
 ```bash
@@ -143,17 +148,103 @@ or the installed console script:
 ai-test-engine
 ```
 
+> Run it with `streamlit run`, **not** `python app_multiagent.py`. Executing a
+> Streamlit app with the plain interpreter starts no server, so every widget
+> silently no-ops behind a `missing ScriptRunContext!` warning.
+
 Upload any workbook from `data/test_data/` and run it. Reports are written to
 `outputs/reports/`.
 
-### 6. Optional: run the demo workflow
+### 6. Run a sample test from the command line
+
+To execute a shipped sample workbook without the UI:
+
+```bash
+python scripts/run_sample_test.py
+```
+
+Details in [Running the demo tests](#running-the-demo-tests) below.
+
+## Running the test suite
+
+The suite in `tests/` covers the agents, coordinator, keyword engine,
+placeholder substitution, browser detection, config, and packaging metadata.
+Everything is mocked — no Chrome, no network, no API keys.
+
+```bash
+pytest                                  # all 112 tests
+pytest -v                               # per-test names
+pytest tests/test_coordinator.py        # one module
+pytest -k placeholder                   # match by name
+pytest --cov=ai_test_engine             # coverage (needs the `dev` extra)
+```
+
+`pytest` must be run from the repository root — `testpaths` and the
+`ai_test_engine` import both resolve relative to it.
+
+## Running the demo tests
+
+Three entry points execute progressively more of the stack.
+
+### `scripts/run_sample_test.py` — real execution of a sample workbook
+
+The headless equivalent of the dashboard's upload-and-run flow: it loads an
+`.xlsx` from `data/test_data/`, submits it to the Coordinator, executes every
+step for real, and writes an HTML report. Exits non-zero if any step fails, so
+it works as a CI smoke test unchanged.
+
+```bash
+python scripts/run_sample_test.py                      # weather API test (default)
+python scripts/run_sample_test.py --list               # show available workbooks
+python scripts/run_sample_test.py -f login_test.xlsx   # UI test — needs Chrome
+python scripts/run_sample_test.py -f login_data_driven.xlsx -d generated_data.xlsx
+```
+
+| Flag | Meaning |
+|---|---|
+| `-f`, `--file` | Test workbook — bare filename from `data/test_data/`, or a path. Default `weather_api_test.xlsx`. |
+| `-d`, `--data` | Data workbook for a data-driven run; each row re-runs the test with its `{{placeholders}}` filled in. |
+| `-e`, `--env` | Environment label recorded in the report. Default `DEV`. |
+| `--no-report` | Skip HTML report generation. |
+| `--list` | List the sample workbooks and exit. |
+
+The bundled workbooks:
+
+| Workbook | Type | Needs Chrome |
+|---|---|---|
+| `weather_api_test.xlsx` | 5 API steps against wttr.in — GET, status, JSON asserts, save variable | no |
+| `login_test.xlsx` | 6 UI steps against practicetestautomation.com — login, verify, logout | yes |
+| `login_data_driven.xlsx` | Same login flow with `{{username}}` / `{{password}}` placeholders | yes |
+| `generated_data.xlsx` | Data rows to pair with `login_data_driven.xlsx` via `-d` | — |
+| `login_test_A.xlsx`, `login_test_B.xlsx` | Near-identical 5-step variants of the login flow, differing only in step wording and locators | yes |
+
+The API workbook is the default deliberately: it needs no browser and no
+display, so a fresh clone can prove the pipeline works immediately.
+
+### `python -m ai_test_engine.demo_workflow` — the full agent pipeline
+
+Exercises all five agents end to end across six phases: AI generation → data
+validation → data-driven execution → performance analysis → reporting. Test
+steps come from the stub LLM rather than a workbook, so no API key is needed.
 
 ```bash
 python -m ai_test_engine.demo_workflow
 ```
 
-Exercises all five agents end to end. Drives a real browser — set
-`HEADLESS=true` to run without a visible window.
+Drives a real browser in its execution phase — set `HEADLESS=true` to run
+without a visible window.
+
+### `scripts/run_tests.py` — report layout preview
+
+Generates two polished HTML reports from **hardcoded** results. It executes
+nothing; use it only to preview report styling.
+
+```bash
+python scripts/run_tests.py
+```
+
+All generated artifacts land in `outputs/reports/`, `outputs/screenshots/`,
+and `outputs/logs/`, which are git-ignored.
 
 ## Configuration
 
