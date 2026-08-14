@@ -13,6 +13,8 @@ from datetime import datetime
 import json
 from io import StringIO
 
+from ai_test_engine.config.settings import REPORTS_DIR
+
 # =========================================================
 # MOCK COORDINATOR (for demo purposes)
 # =========================================================
@@ -21,6 +23,7 @@ class MockCoordinator:
     """Simulates coordinator for demo without real dependencies"""
     
     def __init__(self):
+        """Create the mock. Holds results keyed by test name."""
         self.results = {}
     
     def execute_web_form_test(self):
@@ -527,6 +530,7 @@ class ReportGenerator:
 # =========================================================
 
 def main():
+    """Run both demo tests and write their HTML reports to outputs/reports/."""
     print("=" * 70)
     print("  🤖 MULTI-AGENT TEST AUTOMATION - WEB FORM & API TESTS")
     print("=" * 70)
@@ -556,10 +560,10 @@ def main():
     report_gen = ReportGenerator()
     web_form_html = report_gen.generate_html_report(web_form_results, "web_form_test_report.html")
     
-    with open("c:/Users/Public/streamlit-automation-poc/logs/web_form_test_report.html", "w") as f:
+    with open(REPORTS_DIR / "web_form_test_report.html", "w", encoding="utf-8") as f:
         f.write(web_form_html)
     
-    print("  ✓ HTML report saved to: logs/web_form_test_report.html")
+    print("  ✓ HTML report saved to: outputs/reports/web_form_test_report.html")
     print()
     
     # =========================================================
@@ -582,10 +586,10 @@ def main():
     # Generate HTML report for API test
     api_html = report_gen.generate_html_report(api_results, "api_test_report.html")
     
-    with open("c:/Users/Public/streamlit-automation-poc/logs/api_test_report.html", "w") as f:
+    with open(REPORTS_DIR / "api_test_report.html", "w", encoding="utf-8") as f:
         f.write(api_html)
     
-    print("  ✓ HTML report saved to: logs/api_test_report.html")
+    print("  ✓ HTML report saved to: outputs/reports/api_test_report.html")
     print()
     
     # =========================================================
@@ -614,8 +618,8 @@ def main():
     print()
     
     print("  📄 Generated Reports:")
-    print("    • logs/web_form_test_report.html")
-    print("    • logs/api_test_report.html")
+    print("    • outputs/reports/web_form_test_report.html")
+    print("    • outputs/reports/api_test_report.html")
     print()
     
     print("=" * 70)

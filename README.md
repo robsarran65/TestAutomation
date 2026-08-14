@@ -80,41 +80,101 @@ Execution workers + storage + report output
 
 ## Repository structure
 
-- `app.py` — base application entry point
-- `app_multiagent.py` — multi-agent dashboard UI
-- `framework/` — core coordination and agent logic
-- `tests/` — test assets and practice suites
-- `logs/` — generated execution reports
-- `reports/` — report outputs and stored artifacts
-- `data/` — sample data and fixtures
-- `docs/` style support files (architecture, deployment, release checklists)
+Standard Python src-layout — the importable package lives under `src/`.
+
+- `src/ai_test_engine/` — the package
+  - `app.py` / `app_multiagent.py` — Streamlit dashboards (single- and multi-agent)
+  - `agents/` — coordinator, executor, AI generation, reporting, specialized agents
+  - `core/` — keyword engine, test runner, browser factory, AI helpers
+  - `config/settings.py` — all paths and environment-backed settings
+  - `prompts.py` — LLM prompt templates
+- `tests/` — pytest suite (104 tests, no browser or network required)
+- `data/test_data/` — sample `.xlsx` test workbooks
+- `outputs/` — generated reports, logs, screenshots (git-ignored)
+- `docs/` — architecture, deployment, quickstart
+- `scripts/` — standalone utilities
+
+Full detail: [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md).
 
 ## Local quick start
+
+Requires **Python 3.9+** and **Google Chrome** (UI tests drive a real browser).
 
 ### 1. Create a virtual environment
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\activate          # Windows
+source .venv/bin/activate       # macOS / Linux
 ```
 
-### 2. Install dependencies
+### 2. Install
 
 ```bash
-pip install -r requirements.txt
+pip install -e ".[dev]"
 ```
 
-### 3. Run the dashboard
+Installs the package plus pytest. `pip install -r requirements.txt` gets
+runtime dependencies only.
+
+### 3. Configure (optional)
 
 ```bash
-streamlit run app_multiagent.py
+cp .env.example .env
 ```
 
-### 4. Optional: run demo workflow
+Runs fully offline with no `.env` — `AI_PROVIDER` defaults to `stub`.
+
+### 4. Verify the install
 
 ```bash
-python demo_workflow.py
+pytest
 ```
+
+### 5. Run the dashboard
+
+```bash
+streamlit run src/ai_test_engine/app_multiagent.py
+```
+
+or the installed console script:
+
+```bash
+ai-test-engine
+```
+
+Upload any workbook from `data/test_data/` and run it. Reports are written to
+`outputs/reports/`.
+
+### 6. Optional: run the demo workflow
+
+```bash
+python -m ai_test_engine.demo_workflow
+```
+
+Exercises all five agents end to end. Drives a real browser — set
+`HEADLESS=true` to run without a visible window.
+
+## Configuration
+
+All settings are environment variables, read at import by
+`config/settings.py`. See `.env.example`.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `AI_PROVIDER` | `stub` | `stub` (offline), `openai`, or `claude` |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | — | Required only for the matching provider |
+| `HEADLESS` | `true` outside development | Run Chrome with no window. **Required on servers, containers and CI.** |
+| `DEFAULT_TIMEOUT` | `10` | Seconds Selenium retries a locator before failing a step |
+| `PAGE_LOAD_TIMEOUT` | `60` | Seconds to wait for a page load |
+| `API_TIMEOUT` | `30` | Seconds before an API step gives up |
+| `VERIFY_SSL` | `true` | Set false only for a client with an internal CA |
+| `WINDOW_WIDTH` / `WINDOW_HEIGHT` | `1920` / `1080` | Browser viewport |
+| `SCREENSHOT_ON_FAILURE` | `true` | Capture screenshots into `outputs/screenshots/` |
+| `AI_TEST_ENGINE_HOME` | auto-detected | Where `outputs/` and `data/` live. Set this when running from an installed package. |
+
+Report and log locations are **not** configurable — they are always
+`outputs/{reports,logs,screenshots}`.
 
 ## SaaS deployment model
 

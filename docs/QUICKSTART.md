@@ -2,16 +2,43 @@
 
 ## 🎯 5-Minute Setup
 
-### Step 1: Install Dependencies
+Requires **Python 3.9+** and **Google Chrome** (UI tests drive a real browser).
+
+### Step 1: Install
+
 ```bash
-pip install streamlit pandas selenium webdriver-manager requests fpdf matplotlib
-# For LLM integration (optional):
-# pip install openai anthropic
+pip install -e ".[dev]"
 ```
 
-### Step 2: Run Streamlit App
+Installs the package and its dependencies from `pyproject.toml`, plus pytest.
+Don't hand-list packages — `openpyxl` is easy to miss and nothing can read a
+test workbook without it.
+
+For real LLM providers (optional — the default `stub` provider needs no key):
+
 ```bash
-streamlit run app_multiagent.py
+pip install openai       # AI_PROVIDER=openai
+pip install anthropic    # AI_PROVIDER=claude
+```
+
+### Step 2: Verify
+
+```bash
+pytest
+```
+
+104 tests, no browser or network needed. If these pass, the install is good.
+
+### Step 3: Run the Streamlit App
+
+```bash
+streamlit run src/ai_test_engine/app_multiagent.py
+```
+
+On a server or container, run headless:
+
+```bash
+HEADLESS=true streamlit run src/ai_test_engine/app_multiagent.py
 ```
 
 Then navigate to:
@@ -427,9 +454,10 @@ coordinator.max_retries = 5  # Default is 3
 ## 📚 More Examples
 
 For more examples, see:
-- `app_multiagent.py` - Streamlit UI examples
+- `src/ai_test_engine/app_multiagent.py` - Streamlit UI examples
 - `MULTIAGENT_ARCHITECTURE.md` - Detailed documentation
-- `framework/` - Agent implementations
+- `src/ai_test_engine/agents/` - Agent implementations
+- `PROJECT_STRUCTURE.md` - Layout, output locations, extension points
 
 ---
 

@@ -499,7 +499,7 @@ if st.button("Run Test"):
 ## 📚 File Structure
 
 ```
-framework/
+src/ai_test_engine/
 ├── agent_base.py              # Base Agent class + enums
 ├── coordinator_agent.py        # Coordinator (Manager)
 ├── test_executor_agent.py      # Test execution
@@ -548,7 +548,7 @@ app_multiagent.py              # New multi-agent Streamlit app
 ```python
 coordinator.is_running = True
 # Print statements show task flow
-# Check logs/ directory for detailed reports
+# Reports are written to outputs/reports/
 ```
 
 ### Inspect Agent Status

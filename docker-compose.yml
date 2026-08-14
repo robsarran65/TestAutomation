@@ -1,43 +1,27 @@
-version: '3.9'
+# Single service: the app has no database or cache layer.
+#
+# Earlier versions of this file started Postgres and Redis containers, but
+# nothing in the codebase ever connected to either -- they were pure overhead
+# for anyone deploying it. Re-add them alongside the code that uses them.
 
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ai-test-engine-app
+    container_name: ai-test-engine
     ports:
       - "8501:8501"
     environment:
-      APP_ENV: production
-      APP_PORT: 8501
-      SECRET_KEY: change-me
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/ai_test_engine
-      REDIS_URL: redis://redis:6379/0
-    depends_on:
-      - db
-      - redis
-    restart: unless-stopped
-
-  db:
-    image: postgres:15
-    container_name: ai-test-engine-db
-    environment:
-      POSTGRES_DB: ai_test_engine
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+      ENVIRONMENT: production
+      HEADLESS: "true"          # no display in a container
+      AI_PROVIDER: stub         # set to openai/claude and supply a key below
+      # OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Generated reports land here so they survive container restarts.
+      - ./outputs:/app/outputs
+    # Chrome needs more than Docker's default 64MB /dev/shm or it crashes
+    # mid-run with "session deleted because of page crash".
+    shm_size: "2gb"
     restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    container_name: ai-test-engine-redis
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-volumes:
-  postgres_data:

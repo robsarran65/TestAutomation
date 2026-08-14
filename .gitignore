@@ -33,7 +33,74 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Project-specific
-logs/*.html
-reports/
-!reports/.gitkeep
+# ---------------------------------------------------------------------------
+# Generated output: reports, charts, logs, screenshots.
+# These are build artifacts and must never be committed. The whole outputs/
+# tree is ignored, except the .gitkeep files that preserve the directory
+# layout in a fresh clone. Written this way (rather than listing each
+# subdirectory) so any new outputs/ subdirectory is ignored automatically.
+outputs/**
+!outputs/**/
+!outputs/**/.gitkeep
+
+# Stray output directories: the pre-migration layout wrote here, and so does
+# anything still using a cwd-relative path. Reports belong in outputs/reports/.
+/logs/
+/reports/
+
+# ---------------------------------------------------------------------------
+# TEAM-INTERNAL ONLY -- never ships to a client site.
+#
+# Anything matching below stays on your machine and is not committed, so it
+# cannot reach a client who receives this repository. Put internal notes,
+# client-specific configuration, commercial material, and credentials here.
+#
+# WARNING: these files are NOT version-controlled. They are not backed up,
+# not shared with teammates, and are lost if the working copy is deleted.
+# Keep anything the team must not lose in a separate private repository.
+# ---------------------------------------------------------------------------
+
+# Catch-all internal working area. Create internal/ and put anything
+# client-confidential in it.
+/internal/
+/private/
+/scratch/
+
+# Internal notes and working documents
+NOTES.md
+TODO.md
+*.internal.md
+*.private.md
+docs/internal/
+
+# Client-specific material: per-site configs, environment files, test data
+# captured from a client system. A client must never receive another
+# client's configuration.
+/clients/
+*.client.yml
+*.client.yaml
+*.client.json
+.env.*.local
+
+# Credentials and secrets of every shape
+*.pem
+*.key
+*.pfx
+*.p12
+credentials.json
+secrets.yml
+secrets.yaml
+service-account*.json
+
+# Commercial / delivery material
+*.pricing.*
+*estimate*.xlsx
+*proposal*.docx
+*SOW*.docx
+
+# Local developer scratch
+*.local
+.scratch/
+tmp/
+*.bak
+*.orig

@@ -1,9 +1,18 @@
+# Runtime dependencies.
+#
+# pyproject.toml is the source of truth; this file mirrors it for deployments
+# and Docker images that install with `pip install -r requirements.txt`.
+# Keep the two in sync -- tests/test_packaging.py fails if they drift.
+#
+# For development install the package instead, which also brings in pytest:
+#     pip install -e ".[dev]"
+
 streamlit>=1.35.0
 pandas>=2.2.0
+openpyxl>=3.1.0      # REQUIRED: pandas cannot read .xlsx test workbooks without it
 selenium>=4.21.0
 webdriver-manager>=4.0.1
 requests>=2.32.0
 fpdf>=1.7.2
 matplotlib>=3.8.4
-pytest>=8.2.0
 python-dotenv>=1.0.1
