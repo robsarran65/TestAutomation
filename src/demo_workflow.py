@@ -23,11 +23,11 @@ import json
 from datetime import datetime
 
 # Import coordinator and agents
-from framework.coordinator_agent import CoordinatorAgent
-from framework.test_executor_agent import TestExecutorAgent
-from framework.ai_generation_agent import AIGenerationAgent
-from framework.report_agent import ReportAgent
-from framework.specialized_agents import (
+from agents.coordinator import CoordinatorAgent
+from agents.executor import TestExecutorAgent
+from agents.ai_generation import AIGenerationAgent
+from agents.report import ReportAgent
+from agents.specialized import (
     DataValidatorAgent,
     PerformanceAnalyzerAgent,
 )

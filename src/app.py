@@ -3,8 +3,8 @@ import pandas as pd
 from io import BytesIO
 
 # Import framework modules
-from framework.test_runner import run_test_from_excel
-from framework.ai_engine import (
+from core.test_runner import run_test_from_excel
+from core.ai_engine import (
     ai_generate_test_from_description,
     ai_optimize_test_suite,
     ai_generate_test_data

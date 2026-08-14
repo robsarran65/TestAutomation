@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 import traceback
 import re
 
-from framework.agent_base import Agent, AgentType, TaskMessage, TaskResult, TaskStatus
+from agents.agent_base import Agent, AgentType, TaskMessage, TaskResult, TaskStatus
 
 
 class LocatorRepairAgent(Agent):

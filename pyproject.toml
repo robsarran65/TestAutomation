@@ -1,0 +1,110 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-test-automation-engine"
+version = "1.0.0"
+description = "AI-powered test automation framework for web applications and APIs"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+keywords = [
+    "test-automation",
+    "ai",
+    "testing",
+    "web-testing",
+    "api-testing",
+    "selenium",
+    "streamlit"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Quality Assurance",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+
+dependencies = [
+    "streamlit>=1.28.0",
+    "selenium>=4.0.0",
+    "webdriver-manager>=4.0.0",
+    "pandas>=1.5.0",
+    "openpyxl>=3.0.0",
+    "requests>=2.28.0",
+    "fpdf>=1.7.2",
+    "matplotlib>=3.5.0",
+    "python-dotenv>=0.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "isort>=5.0.0",
+]
+ai = [
+    "openai>=0.27.0",
+    "anthropic>=0.7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/robsarran65/TestAutomation"
+Documentation = "https://github.com/robsarran65/TestAutomation/tree/main/docs"
+Repository = "https://github.com/robsarran65/TestAutomation.git"
+"Bug Tracker" = "https://github.com/robsarran65/TestAutomation/issues"
+
+[project.scripts]
+ai-test-engine = "src.app_multiagent:main"
+
+[tool.setuptools]
+packages = ["agents", "config", "core", "data", "outputs", "src", "utils"]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_glob = ["*/migrations/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = "--cov=agents --cov=core --cov=utils --cov-report=html --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

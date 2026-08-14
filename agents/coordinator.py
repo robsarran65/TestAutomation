@@ -10,7 +10,7 @@ import threading
 from queue import PriorityQueue, Queue
 import json
 
-from framework.agent_base import (
+from agents.agent_base import (
     Agent, AgentType, TaskMessage, TaskResult, TaskStatus
 )
 

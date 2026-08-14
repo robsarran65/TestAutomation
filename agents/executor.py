@@ -11,8 +11,8 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import WebDriverException
 
-from framework.agent_base import Agent, AgentType, TaskMessage, TaskResult, TaskStatus
-from framework.keyword_engine import KEYWORD_MAP
+from agents.agent_base import Agent, AgentType, TaskMessage, TaskResult, TaskStatus
+from core.keyword_engine import KEYWORD_MAP
 
 
 class TestExecutorAgent(Agent):

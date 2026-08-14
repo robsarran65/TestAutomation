@@ -12,7 +12,7 @@ from fpdf import FPDF
 import matplotlib.pyplot as plt
 from io import BytesIO
 
-from framework.agent_base import Agent, AgentType, TaskMessage, TaskResult, TaskStatus
+from agents.agent_base import Agent, AgentType, TaskMessage, TaskResult, TaskStatus
 
 
 class ReportAgent(Agent):
